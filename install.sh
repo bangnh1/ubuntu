@@ -72,13 +72,13 @@ printf "${YELLOW}
 # script must be run as root
 if [[ $(id -u) -ne 0 ]] ; then printf "\n${LRED} Please run as root${RESTORE}\n\n" ; exit 1 ; fi
 
+# description
+_task "update repository"
+    _cmd 'apt-get update -y'
+
 # dependencies
 _task "update dependencies"
     _cmd 'apt-get install wget sed git -y'
-
-# description
-_task "update system"
-    _cmd 'apt-get update -y && apt-get full-upgrade -y'
 
 # finish last task
 printf "${OVERWRITE}${LGREEN} [✓]  ${LGREEN}${TASK}\n"
