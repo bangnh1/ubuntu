@@ -147,7 +147,7 @@ printf "      ${YELLOW}Do you want to modify Ubuntu firewall? [Y/n]: ${RESTORE}"
 read prompt && printf "${OVERWRITE}" && if [[ $prompt == "y" || $prompt == "Y" ]]; then
     _task "configure firewall"
         _cmd 'ufw disable'
-        # _cmd 'echo "y" | sudo ufw reset'
+        _cmd 'echo "y" | sudo ufw reset'
         _cmd 'ufw logging off'
         _cmd 'ufw default deny incoming'
         _cmd 'ufw default allow outgoing'
@@ -164,6 +164,7 @@ read prompt && printf "${OVERWRITE}" && if [[ $prompt == "y" || $prompt == "Y" ]
         _cmd 'echo "IPV6=no" | sudo tee -a /etc/default/ufw'
         _cmd 'sed -i "/GRUB_CMDLINE_LINUX_DEFAULT=/Id" /etc/default/grub'
         _cmd 'echo "GRUB_CMDLINE_LINUX_DEFAULT=\"ipv6.disable=1 quiet splash\"" | sudo tee -a /etc/default/grub'
+        _cmd 'ufw --force enable'
 fi
 
 # description
