@@ -38,20 +38,20 @@ function _task {
 
 # _cmd performs commands with error checking
 function _cmd {
-    # empty conduro.log
-    > conduro.log
+    # empty bangnh1.log
+    > bangnh1.log
     # hide stdout, on error we print and exit
-    if eval "$1" 1> /dev/null 2> conduro.log; then
+    if eval "$1" 1> /dev/null 2> bangnh1.log; then
         return 0 # success
     fi
     # read error from log and add spacing
     printf "${OVERWRITE}${LRED} [X]  ${TASK}${LRED}\n"
     while read line; do 
         printf "      ${line}\n"
-    done < conduro.log
+    done < bangnh1.log
     printf "\n"
     # remove log file
-    rm conduro.log
+    rm bangnh1.log
     # exit installation
     exit 1
 } 
@@ -97,10 +97,13 @@ read prompt && printf "${OVERWRITE}" && if [[ $prompt == "y" || $prompt == "Y" ]
 fi
 
 # description
-_task "update nameservers"
-    _cmd 'truncate -s0 /etc/resolv.conf'
-    _cmd 'echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf'
-    _cmd 'echo "nameserver 1.0.0.1" | sudo tee -a /etc/resolv.conf'
+printf "      ${YELLOW}Do you want to change DNS servers? [Y/n]: ${RESTORE}"
+read prompt && printf "${OVERWRITE}" && if [[ $prompt == "y" || $prompt == "Y" ]]; then
+    _task "update nameservers"
+        _cmd 'truncate -s0 /etc/resolv.conf'
+        _cmd 'echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf'
+        _cmd 'echo "nameserver 1.0.0.1" | sudo tee -a /etc/resolv.conf'
+fi
 
 # description
 _task "update ntp servers"
@@ -111,21 +114,24 @@ _task "update ntp servers"
 
 # description
 _task "update sysctl.conf"
-    _cmd 'wget --timeout=5 --tries=2 --quiet -c https://raw.githubusercontent.com/conduro/ubuntu/main/sysctl.conf -O /etc/sysctl.conf'
+    _cmd 'wget --timeout=5 --tries=2 --quiet -c https://raw.githubusercontent.com/bangnh1/ubuntu/main/sysctl.conf -O /etc/sysctl.conf'
 
 # description
 _task "update sshd_config"
-    _cmd 'wget --timeout=5 --tries=2 --quiet -c https://raw.githubusercontent.com/conduro/ubuntu/main/sshd.conf -O /etc/ssh/sshd_config'
+    _cmd 'wget --timeout=5 --tries=2 --quiet -c https://raw.githubusercontent.com/bangnh1/ubuntu/main/sshd.conf -O /etc/ssh/sshd_config'
 
 # description
-_task "disable system logging"
-    _cmd 'systemctl stop systemd-journald.service'
-    _cmd 'systemctl disable systemd-journald.service'
-    _cmd 'systemctl mask systemd-journald.service'
+printf "      ${YELLOW}Do you want to disable server logging? [Y/n]: ${RESTORE}"
+read prompt && printf "${OVERWRITE}" && if [[ $prompt == "y" || $prompt == "Y" ]]; then
+    _task "disable system logging"
+        _cmd 'systemctl stop systemd-journald.service'
+        _cmd 'systemctl disable systemd-journald.service'
+        _cmd 'systemctl mask systemd-journald.service'
 
-    _cmd 'systemctl stop rsyslog.service'
-    _cmd 'systemctl disable rsyslog.service'
-    _cmd 'systemctl mask rsyslog.service'
+        _cmd 'systemctl stop rsyslog.service'
+        _cmd 'systemctl disable rsyslog.service'
+        _cmd 'systemctl mask rsyslog.service'
+fi
 
 # description
 _task "disable snapd"
@@ -134,26 +140,28 @@ _task "disable snapd"
     _cmd 'systemctl mask snapd.service'
 
 # firewall
-_task "configure firewall"
-    _cmd 'ufw disable'
-    _cmd 'echo "y" | sudo ufw reset'
-    _cmd 'ufw logging off'
-    _cmd 'ufw default deny incoming'
-    _cmd 'ufw default allow outgoing'
-    _cmd 'ufw allow 80/tcp comment "http"'
-    _cmd 'ufw allow 443/tcp comment "https"'
-    printf "${YELLOW} [?]  specify ssh port [leave empty for 22]: ${RESTORE}"
-    read prompt && printf "${OVERWRITE}" && if [[ $prompt != "" ]]; then
-        _cmd 'ufw allow ${prompt}/tcp comment "ssh"'
-        _cmd 'echo "Port ${prompt}" | sudo tee -a /etc/ssh/sshd_config'
-    else 
-        _cmd 'ufw allow 22/tcp comment "ssh"'
-    fi
-    _cmd 'sed -i "/ipv6=/Id" /etc/default/ufw'
-    _cmd 'echo "IPV6=no" | sudo tee -a /etc/default/ufw'
-    _cmd 'sed -i "/GRUB_CMDLINE_LINUX_DEFAULT=/Id" /etc/default/grub'
-    _cmd 'echo "GRUB_CMDLINE_LINUX_DEFAULT=\"ipv6.disable=1 quiet splash\"" | sudo tee -a /etc/default/grub'
-
+printf "      ${YELLOW}Do you want to modify Ubuntu firewall? [Y/n]: ${RESTORE}"
+read prompt && printf "${OVERWRITE}" && if [[ $prompt == "y" || $prompt == "Y" ]]; then
+    _task "configure firewall"
+        _cmd 'ufw disable'
+        # _cmd 'echo "y" | sudo ufw reset'
+        _cmd 'ufw logging off'
+        _cmd 'ufw default deny incoming'
+        _cmd 'ufw default allow outgoing'
+        _cmd 'ufw allow 80/tcp comment "http"'
+        _cmd 'ufw allow 443/tcp comment "https"'
+        printf "${YELLOW} [?]  specify ssh port [leave empty for 22]: ${RESTORE}"
+        read prompt && printf "${OVERWRITE}" && if [[ $prompt != "" ]]; then
+            _cmd 'ufw allow ${prompt}/tcp comment "ssh"'
+            _cmd 'echo "Port ${prompt}" | sudo tee -a /etc/ssh/sshd_config'
+        else 
+            _cmd 'ufw allow 22/tcp comment "ssh"'
+        fi
+        _cmd 'sed -i "/ipv6=/Id" /etc/default/ufw'
+        _cmd 'echo "IPV6=no" | sudo tee -a /etc/default/ufw'
+        _cmd 'sed -i "/GRUB_CMDLINE_LINUX_DEFAULT=/Id" /etc/default/grub'
+        _cmd 'echo "GRUB_CMDLINE_LINUX_DEFAULT=\"ipv6.disable=1 quiet splash\"" | sudo tee -a /etc/default/grub'
+fi
 
 # description
 _task "free disk space"
@@ -169,14 +177,14 @@ _task "reload system"
     _cmd 'sysctl -p'
     _cmd 'update-grub2'
     _cmd 'systemctl restart systemd-timesyncd'
-    _cmd 'ufw --force enable'
+    # _cmd 'ufw --force enable'
     _cmd 'service ssh restart'
 
 # finish last task
 printf "${OVERWRITE}${LGREEN} [✓]  ${LGREEN}${TASK}\n"
 
-# remove conduro.log
-rm conduro.log
+# remove bangnh1.log
+rm bangnh1.log
 
 # reboot
 printf "\n${YELLOW} Do you want to reboot [Y/n]? ${RESTORE}"
