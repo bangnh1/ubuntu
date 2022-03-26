@@ -134,10 +134,13 @@ read prompt && printf "${OVERWRITE}" && if [[ $prompt == "y" || $prompt == "Y" ]
 fi
 
 # description
-_task "disable snapd"
-    _cmd 'systemctl stop snapd.service'
-    _cmd 'systemctl disable snapd.service'
-    _cmd 'systemctl mask snapd.service'
+printf "      ${YELLOW}Do you want to disable snapd? [Y/n]: ${RESTORE}"
+read prompt && printf "${OVERWRITE}" && if [[ $prompt == "y" || $prompt == "Y" ]]; then
+    _task "disable snapd"
+        _cmd 'systemctl stop snapd.service'
+        _cmd 'systemctl disable snapd.service'
+        _cmd 'systemctl mask snapd.service'
+fi
 
 # firewall
 printf "      ${YELLOW}Do you want to modify Ubuntu firewall? [Y/n]: ${RESTORE}"
